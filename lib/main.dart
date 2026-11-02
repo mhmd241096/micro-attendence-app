@@ -17,6 +17,7 @@ import 'package:url_launcher/url_launcher.dart';
 typedef JsonMap = Map<String, dynamic>;
 typedef StringDropItem = DropdownMenuItem<String>;
 typedef IntDropItem = DropdownMenuItem<int>;
+typedef CsvRow = List<String>;
 
 JsonMap asJsonMap(dynamic raw) {
   if (raw is Map) {
@@ -97,16 +98,115 @@ const Map<String, String> kTrackLabels = <String, String>{
   'BSU_Clinical': 'BSU Clinical (الحكومية كلينيكال)',
 };
 
+const String kAppealsDbSheetId = '14u5xynpymZQj_R97y7fUib9Ki7YxBNRSYiH7a3Ue0x8';
+
+const Map<String, String> kGradesWorkbookIds = <String, String>{
+  'BSNU_Clinical': '13g2QVnTSM5SpQV8Rmo8mPgQMWSJbXSQdA5V6v6Je09U',
+  'BSNU_General': '1dIXj6g2myUeMsahY1OQX2AbrJ5UT80GJKSyDL2o08Vg',
+  'BSU_General': '16rK8UJBxNWAwagvn84XPo2PS2tbJ1ly4AOgVYPFNqDg',
+  'BSU_Clinical': '1hs8I8pYhQ3JA6BN5agPNu4nEjrUm0_EN86_7hLHgKBM',
+};
+
 const List<JsonMap> kSubjectCatalog = <JsonMap>[
-  <String, dynamic>{'key': 'basicMicro', 'altKey': 'basic_micro', 'name': 'Basic Microbiology'},
-  <String, dynamic>{'key': 'parasitology', 'altKey': 'parasitology', 'name': 'Parasitology'},
-  <String, dynamic>{'key': 'biotech', 'altKey': 'biotechnology', 'name': 'Biotechnology'},
-  <String, dynamic>{'key': 'pharmaMicro', 'altKey': 'pharm_micro', 'name': 'Pharmaceutical Microbiology'},
-  <String, dynamic>{'key': 'medicalMicro', 'altKey': 'medical_micro', 'name': 'Medical Microbiology'},
-  <String, dynamic>{'key': 'cellBiology', 'altKey': 'cell_biology', 'name': 'Cell Biology'},
-  <String, dynamic>{'key': 'publicHealth', 'altKey': 'public_health', 'name': 'Public Health'},
-  <String, dynamic>{'key': 'infectionControl', 'altKey': 'infection_control', 'name': 'Infection Control'},
-  <String, dynamic>{'key': 'antimicrobialStewardship', 'altKey': 'antimicrobial', 'name': 'Antimicrobial Stewardship'},
+  <String, dynamic>{
+    'key': 'basicMicro',
+    'altKey': 'basic_micro',
+    'name': 'Basic Microbiology',
+    'tabs': <String, String>{
+      'BSNU_Clinical': 'Basic microbiology Clinical Nat U',
+      'BSNU_General': 'Basic microbiology Nat U',
+      'BSU_General': 'Basic microbiology',
+      'BSU_Clinical': 'Basic microbiology Clinical',
+    },
+  },
+  <String, dynamic>{
+    'key': 'parasitology',
+    'altKey': 'parasitology',
+    'name': 'Parasitology',
+    'tabs': <String, String>{
+      'BSNU_Clinical': 'Parasitology Clinical Nat U',
+      'BSNU_General': 'Parasitology Nat U',
+      'BSU_General': 'Parasitology',
+      'BSU_Clinical': 'Parasitology Clinical',
+    },
+  },
+  <String, dynamic>{
+    'key': 'biotech',
+    'altKey': 'biotechnology',
+    'name': 'Biotechnology',
+    'tabs': <String, String>{
+      'BSNU_Clinical': 'Biotechnology Clinical Nat U',
+      'BSNU_General': 'Biotechnology Nat U',
+      'BSU_General': 'Biotechnology',
+      'BSU_Clinical': 'Biotechnology Clinical',
+    },
+  },
+  <String, dynamic>{
+    'key': 'pharmaMicro',
+    'altKey': 'pharm_micro',
+    'name': 'Pharmaceutical Microbiology',
+    'tabs': <String, String>{
+      'BSNU_Clinical': 'Pharmaceutical microbiology Clinical Nat U',
+      'BSNU_General': 'Pharmaceutical microbiology Nat U',
+      'BSU_General': 'Pharmaceutical microbiology',
+      'BSU_Clinical': 'Pharmaceutical microbiology Clinical',
+    },
+  },
+  <String, dynamic>{
+    'key': 'medMicro',
+    'altKey': 'medical_micro',
+    'name': 'Medical Microbiology',
+    'tabs': <String, String>{
+      'BSNU_Clinical': 'Medical microbiology Clinical Nat U',
+      'BSNU_General': 'Medical microbiology Nat U',
+      'BSU_General': 'Medical microbiology',
+      'BSU_Clinical': 'Medical microbiology Clinical',
+    },
+  },
+  <String, dynamic>{
+    'key': 'cellBio',
+    'altKey': 'cell_biology',
+    'name': 'Cell Biology',
+    'tabs': <String, String>{
+      'BSNU_Clinical': 'Cell biology Clinical Nat U',
+      'BSNU_General': 'Cell biology Nat U',
+      'BSU_General': 'Cell biology',
+      'BSU_Clinical': 'Cell biology Clinical',
+    },
+  },
+  <String, dynamic>{
+    'key': 'publicHealth',
+    'altKey': 'public_health',
+    'name': 'Public Health',
+    'tabs': <String, String>{
+      'BSNU_Clinical': 'Public health Clinical Nat U',
+      'BSNU_General': 'Public health Nat U',
+      'BSU_General': 'Public health',
+      'BSU_Clinical': 'Public health Clinical',
+    },
+  },
+  <String, dynamic>{
+    'key': 'infectionControl',
+    'altKey': 'infection_control',
+    'name': 'Infection Control',
+    'tabs': <String, String>{
+      'BSNU_Clinical': 'Infection Control Clinical Nat U',
+      'BSNU_General': 'Infection Control Nat U',
+      'BSU_General': 'Infection Control',
+      'BSU_Clinical': 'Infection Control Clinical',
+    },
+  },
+  <String, dynamic>{
+    'key': 'antimicrobialStewardship',
+    'altKey': 'antimicrobial',
+    'name': 'Antimicrobial Stewardship',
+    'tabs': <String, String>{
+      'BSNU_Clinical': 'Antimicrobial Stewardship Clinical Nat U',
+      'BSNU_General': 'Antimicrobial Stewardship Nat U',
+      'BSU_General': 'Antimicrobial Stewardship',
+      'BSU_Clinical': 'Antimicrobial Stewardship Clinical',
+    },
+  },
 ];
 
 const List<JsonMap> kActionPermDefinitions = <JsonMap>[
@@ -172,6 +272,10 @@ JsonMap? findSubjectByNameOrKey(String raw) {
     clean = 'pharmamicro';
   } else if (clean == 'biotechnology' || clean == 'biotech') {
     clean = 'biotech';
+  } else if (clean == 'medicalmicro' || clean == 'medical_micro' || clean == 'medmicro') {
+    clean = 'medmicro';
+  } else if (clean == 'cellbiology' || clean == 'cell_biology' || clean == 'cellbio') {
+    clean = 'cellbio';
   }
   for (final JsonMap item in kSubjectCatalog) {
     if (item['key'].toString().toLowerCase() == clean ||
@@ -189,14 +293,15 @@ bool isDoctorCourseAllowed(List<String> perms, String trackKey, String subjectNa
   final JsonMap? item = findSubjectByNameOrKey(subjectNameOrKey);
   final String canonicalKey = item != null ? item['key'].toString() : subjectNameOrKey;
   final String altKey = item != null ? item['altKey'].toString() : subjectNameOrKey;
-  if (perms.contains('${trackKey}__$canonicalKey') || perms.contains('${trackKey}__$altKey')) {
-    return true;
-  }
-  if (canonicalKey == 'pharmaMicro' && perms.contains('${trackKey}__pharmMicro')) {
-    return true;
-  }
-  if (canonicalKey == 'biotech' && perms.contains('${trackKey}__biotechnology')) {
-    return true;
+  for (final String p in perms) {
+    if (!p.contains('__')) continue;
+    final List<String> parts = p.split('__');
+    if (parts.length != 2 || parts[0] != trackKey) continue;
+    final JsonMap? permSubj = findSubjectByNameOrKey(parts[1]);
+    final String permKey = permSubj != null ? permSubj['key'].toString() : parts[1];
+    if (permKey == canonicalKey || parts[1] == canonicalKey || parts[1] == altKey) {
+      return true;
+    }
   }
   return false;
 }
@@ -228,6 +333,7 @@ List<String> buildDefaultActionPerms() {
 // ============================================================================
 class PortalApiService {
   static String _webAppUrl = kDefaultWebAppUrl;
+  static JsonMap _localVisibilityCache = <String, dynamic>{};
 
   static String get webAppUrl => _webAppUrl;
 
@@ -237,6 +343,10 @@ class PortalApiService {
       final String? saved = prefs.getString('custom_gas_webapp_url');
       if (saved != null && saved.trim().startsWith('http')) {
         _webAppUrl = saved.trim();
+      }
+      final String? visRaw = prefs.getString('local_grades_visibility_map');
+      if (visRaw != null && visRaw.isNotEmpty) {
+        _localVisibilityCache = asJsonMap(jsonDecode(visRaw));
       }
     } catch (_) {}
   }
@@ -248,6 +358,46 @@ class PortalApiService {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('custom_gas_webapp_url', clean);
+    } catch (_) {}
+  }
+
+  static Future<JsonMap> getMergedVisibilityMap([JsonMap? serverVis]) async {
+    final JsonMap result = <String, dynamic>{};
+    for (final String tk in kTrackKeys) {
+      final JsonMap sTrack = serverVis != null ? asJsonMap(serverVis[tk]) : <String, dynamic>{};
+      final JsonMap lTrack = asJsonMap(_localVisibilityCache[tk]);
+      final JsonMap mergedTrack = <String, dynamic>{};
+      for (final JsonMap subj in kSubjectCatalog) {
+        final String sk = subj['key'].toString();
+        final String alt = subj['altKey'].toString();
+        bool open = true;
+        if (sTrack.containsKey(sk)) {
+          open = !(sTrack[sk] == false || sTrack[sk]?.toString().toLowerCase() == 'false');
+        } else if (sTrack.containsKey(alt)) {
+          open = !(sTrack[alt] == false || sTrack[alt]?.toString().toLowerCase() == 'false');
+        }
+        if (lTrack.containsKey(sk)) {
+          open = !(lTrack[sk] == false || lTrack[sk]?.toString().toLowerCase() == 'false');
+        }
+        mergedTrack[sk] = open;
+        mergedTrack[alt] = open;
+      }
+      result[tk] = mergedTrack;
+    }
+    return result;
+  }
+
+  static Future<void> _saveLocalVisibility(String trackKey, String subjKey, bool isOpen) async {
+    final JsonMap? item = findSubjectByNameOrKey(subjKey);
+    final String canon = item != null ? item['key'].toString() : subjKey;
+    final String alt = item != null ? item['altKey'].toString() : subjKey;
+    final JsonMap tMap = asJsonMap(_localVisibilityCache[trackKey]);
+    tMap[canon] = isOpen;
+    tMap[alt] = isOpen;
+    _localVisibilityCache[trackKey] = tMap;
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('local_grades_visibility_map', jsonEncode(_localVisibilityCache));
     } catch (_) {}
   }
 
@@ -285,7 +435,19 @@ class PortalApiService {
       if (responseText.trim().isEmpty) {
         return <String, dynamic>{'success': false, 'message': 'Empty response from server.'};
       }
-      return jsonDecode(responseText);
+      final dynamic decoded = jsonDecode(responseText);
+
+      // Check if server returned "Unknown action: ..." because an older Code.gs deployment is active
+      if (decoded is Map) {
+        final String msg = (decoded['message'] ?? '').toString();
+        if (msg.contains('Unknown action:') || msg.contains('Unknown API action:')) {
+          return await _handleDirectSheetFallback(action, args, client);
+        }
+        if (action == 'verifyDoctorLogin' && decoded['success'] == true) {
+          decoded['visibility'] = await getMergedVisibilityMap(asJsonMap(decoded['visibility']));
+        }
+      }
+      return decoded;
     } catch (err) {
       return <String, dynamic>{
         'success': false,
@@ -294,6 +456,355 @@ class PortalApiService {
     } finally {
       client.close();
     }
+  }
+
+  /// Automatic direct Google Sheet fallback when the deployed Apps Script URL hasn't been redeployed yet
+  static Future<dynamic> _handleDirectSheetFallback(
+    String action,
+    List<dynamic> args,
+    http.Client client,
+  ) async {
+    if (action == 'toggleSingleSubjectVisibility' && args.length >= 5) {
+      final String tk = args[2].toString();
+      final String sk = args[3].toString();
+      final bool openBool = args[4] == true || args[4].toString().toLowerCase() == 'true';
+      await _saveLocalVisibility(tk, sk, openBool);
+      final JsonMap? item = findSubjectByNameOrKey(sk);
+      final String subjName = item != null ? item['name'].toString() : sk;
+      final String trackLabel = kTrackLabels[tk] ?? tk;
+      return <String, dynamic>{
+        'success': true,
+        'trackKey': tk,
+        'subjKey': item != null ? item['key'] : sk,
+        'isOpen': openBool,
+        'visibility': await getMergedVisibilityMap(),
+        'message': openBool
+            ? '✅ تم إعلان نتائج مقرر ($subjName) للطلاب في ($trackLabel)'
+            : '🔒 تم حجب نتائج مقرر ($subjName) عن الطلاب في ($trackLabel)',
+      };
+    }
+
+    if (action == 'getCourseGradesSheetForDoctor' && args.length >= 5) {
+      final String uni = args[2].toString();
+      final String prog = args[3].toString();
+      final String subj = args[4].toString();
+      return await _fetchGradesSheetDirectly(client, uni, prog, subj);
+    }
+
+    if (action == 'getAppealsForDoctor' && args.length >= 5) {
+      final String uni = args[2].toString();
+      final String prog = args[3].toString();
+      final String subj = args[4].toString();
+      return await _fetchAppealsSheetDirectly(client, uni, prog, subj);
+    }
+
+    if (action == 'getStudentGradeRecord' && args.length >= 4) {
+      final String uni = args[0].toString();
+      final String prog = args[1].toString();
+      final String subj = args[2].toString();
+      final String studentId = args[3].toString().trim();
+      return await _fetchStudentGradeDirectly(client, uni, prog, subj, studentId);
+    }
+
+    return <String, dynamic>{
+      'success': false,
+      'message': 'يرجى تحديث نشر ملف Code.gs في Google Apps Script (Deploy -> Manage deployments -> Edit -> New version).',
+    };
+  }
+
+  static List<CsvRow> _parseCsv(String csvText) {
+    final List<CsvRow> rows = <CsvRow>[];
+    List<String> currentRow = <String>[];
+    final StringBuffer cell = StringBuffer();
+    bool inQuotes = false;
+
+    for (int i = 0; i < csvText.length; i++) {
+      final String ch = csvText[i];
+      if (inQuotes) {
+        if (ch == '"') {
+          if (i + 1 < csvText.length && csvText[i + 1] == '"') {
+            cell.write('"');
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          cell.write(ch);
+        }
+      } else {
+        if (ch == '"') {
+          inQuotes = true;
+        } else if (ch == ',') {
+          currentRow.add(cell.toString());
+          cell.clear();
+        } else if (ch == '
+' || ch == '
+') {
+          if (ch == '
+' && i + 1 < csvText.length && csvText[i + 1] == '
+') {
+            i++;
+          }
+          currentRow.add(cell.toString());
+          cell.clear();
+          if (currentRow.any((String s) => s.trim().isNotEmpty)) {
+            rows.add(currentRow);
+          }
+          currentRow = <String>[];
+        } else {
+          cell.write(ch);
+        }
+      }
+    }
+    if (cell.isNotEmpty || currentRow.isNotEmpty) {
+      currentRow.add(cell.toString());
+      if (currentRow.any((String s) => s.trim().isNotEmpty)) {
+        rows.add(currentRow);
+      }
+    }
+    return rows;
+  }
+
+  static String _normCode(String raw) {
+    String s = raw.trim();
+    const String ar = '٠١٢٣٤٥٦٧٨٩';
+    for (int i = 0; i < 10; i++) {
+      s = s.replaceAll(ar[i], i.toString());
+    }
+    if (s.endsWith('.0')) {
+      s = s.substring(0, s.length - 2);
+    }
+    return s.trim();
+  }
+
+  static Future<JsonMap> _fetchGradesSheetDirectly(
+    http.Client client,
+    String uni,
+    String prog,
+    String subj,
+  ) async {
+    try {
+      final String tk = resolveTrackKey(uni, prog);
+      final JsonMap? item = findSubjectByNameOrKey(subj);
+      if (item == null) {
+        return <String, dynamic>{'success': false, 'message': 'Invalid subject selected.'};
+      }
+      final String wbId = kGradesWorkbookIds[tk] ?? '';
+      final JsonMap tabs = asJsonMap(item['tabs']);
+      final String tabName = tabs[tk]?.toString() ?? item['name'].toString();
+      final String csvUrl =
+          'https://docs.google.com/spreadsheets/d/$wbId/gviz/tq?tqx=out:csv&sheet=${Uri.encodeComponent(tabName)}';
+      final http.Response res = await client.get(Uri.parse(csvUrl)).timeout(const Duration(seconds: 30));
+      if (res.statusCode != 200) {
+        return <String, dynamic>{'success': false, 'message': 'Could not read grades sheet ($tabName).'};
+      }
+      final List<CsvRow> rows = _parseCsv(res.body);
+      if (rows.length < 2) {
+        return <String, dynamic>{
+          'success': true,
+          'trackKey': tk,
+          'subjectName': item['name'],
+          'sheetTabName': tabName,
+          'sheetUrl': 'https://docs.google.com/spreadsheets/d/$wbId/edit',
+          'hasPractical': true,
+          'periodicalTitle': 'Total Periodical',
+          'practicalTitle': 'Total Practical',
+          'students': <JsonMap>[],
+          'stats': <String, dynamic>{
+            'totalStudents': 0,
+            'avgPeriodical': 0,
+            'avgPractical': 0,
+            'avgTotal': 0,
+            'maxTotal': 0,
+            'appealsCount': 0,
+          },
+        };
+      }
+
+      final List<String> hdr = rows[0];
+      final String col3Title = hdr.length > 2 && hdr[2].trim().isNotEmpty ? hdr[2].trim() : 'Total Periodical';
+      final String col4Title = hdr.length > 3 ? hdr[3].trim() : '';
+      final bool isCol4Appeal = col4Title.toLowerCase().contains('appeal') || col4Title.isEmpty;
+      final bool hasPrac = !isCol4Appeal;
+
+      final List<JsonMap> students = <JsonMap>[];
+      double sumPer = 0, sumPrac = 0, sumTot = 0, maxTot = 0;
+      int cntPer = 0, cntPrac = 0, cntTot = 0;
+
+      for (int r = 1; r < rows.length; r++) {
+        final List<String> row = rows[r];
+        final String sid = row.isNotEmpty ? _normCode(row[0]) : '';
+        final String sname = row.length > 1 ? row[1].trim() : '';
+        if (sid.isEmpty && sname.isEmpty) continue;
+
+        final String rawPer = (row.length > 2 && row[2].trim().isNotEmpty) ? row[2].trim() : '—';
+        final String rawPrac = (hasPrac && row.length > 3 && row[3].trim().isNotEmpty) ? row[3].trim() : '—';
+
+        final double? pNum = double.tryParse(rawPer);
+        final double? prNum = double.tryParse(rawPrac);
+        String totVal = '—';
+
+        if (pNum != null) {
+          sumPer += pNum;
+          cntPer++;
+        }
+        if (hasPrac && prNum != null) {
+          sumPrac += prNum;
+          cntPrac++;
+        }
+        if (pNum != null && hasPrac && prNum != null) {
+          final double t = ((pNum + prNum) * 100).roundToDouble() / 100;
+          totVal = t.toString();
+          sumTot += t;
+          cntTot++;
+          if (t > maxTot) maxTot = t;
+        } else if (pNum != null && !hasPrac) {
+          totVal = pNum.toString();
+          sumTot += pNum;
+          cntTot++;
+          if (pNum > maxTot) maxTot = pNum;
+        }
+
+        students.add(<String, dynamic>{
+          'rowNumber': r + 1,
+          'studentId': sid.isEmpty ? '—' : sid,
+          'name': sname.isEmpty ? '—' : sname,
+          'periodical': rawPer,
+          'practical': rawPrac,
+          'total': totVal,
+        });
+      }
+
+      return <String, dynamic>{
+        'success': true,
+        'trackKey': tk,
+        'subjectName': item['name'],
+        'sheetTabName': tabName,
+        'sheetUrl': 'https://docs.google.com/spreadsheets/d/$wbId/edit',
+        'hasPractical': hasPrac,
+        'periodicalTitle': col3Title,
+        'practicalTitle': hasPrac ? col4Title : 'Practical',
+        'students': students,
+        'stats': <String, dynamic>{
+          'totalStudents': students.length,
+          'avgPeriodical': cntPer > 0 ? ((sumPer / cntPer) * 100).roundToDouble() / 100 : 0,
+          'avgPractical': cntPrac > 0 ? ((sumPrac / cntPrac) * 100).roundToDouble() / 100 : 0,
+          'avgTotal': cntTot > 0 ? ((sumTot / cntTot) * 100).roundToDouble() / 100 : 0,
+          'maxTotal': maxTot,
+          'appealsCount': 0,
+        },
+      };
+    } catch (e) {
+      return <String, dynamic>{'success': false, 'message': 'Error loading sheet: $e'};
+    }
+  }
+
+  static Future<JsonMap> _fetchAppealsSheetDirectly(
+    http.Client client,
+    String uni,
+    String prog,
+    String subj,
+  ) async {
+    try {
+      final String tk = resolveTrackKey(uni, prog);
+      final JsonMap? item = findSubjectByNameOrKey(subj);
+      if (item == null) {
+        return <String, dynamic>{'success': false, 'message': 'Invalid subject.'};
+      }
+      final JsonMap tabs = asJsonMap(item['tabs']);
+      final String tabName = tabs[tk]?.toString() ?? item['name'].toString();
+      final String csvUrl =
+          'https://docs.google.com/spreadsheets/d/$kAppealsDbSheetId/gviz/tq?tqx=out:csv&sheet=${Uri.encodeComponent(tabName)}';
+      final http.Response res = await client.get(Uri.parse(csvUrl)).timeout(const Duration(seconds: 30));
+      if (res.statusCode != 200) {
+        return <String, dynamic>{'success': true, 'appeals': <JsonMap>[]};
+      }
+      final List<CsvRow> rows = _parseCsv(res.body);
+      if (rows.length < 2) {
+        return <String, dynamic>{'success': true, 'appeals': <JsonMap>[]};
+      }
+      if (rows[0].isNotEmpty && rows[0][0].trim().toLowerCase() != 'id') {
+        return <String, dynamic>{'success': true, 'appeals': <JsonMap>[]};
+      }
+      final List<JsonMap> list = <JsonMap>[];
+      for (int i = 1; i < rows.length; i++) {
+        final List<String> r = rows[i];
+        final String sid = r.isNotEmpty ? _normCode(r[0]) : '';
+        if (sid.isEmpty) continue;
+        final bool isRev = r.length > 4 && r[4].trim().toLowerCase() == 'true';
+        final double bPer = r.length > 6 ? (double.tryParse(r[6].trim()) ?? 0) : 0;
+        final double bPrac = r.length > 7 ? (double.tryParse(r[7].trim()) ?? 0) : 0;
+        String status = r.length > 10 ? r[10].trim() : '';
+        if (status.isEmpty) {
+          status = !isRev ? 'Pending' : ((bPer > 0 || bPrac > 0) ? 'Approved' : 'Rejected');
+        }
+        list.add(<String, dynamic>{
+          'row': i + 1,
+          'studentId': sid,
+          'name': r.length > 1 ? r[1].trim() : '',
+          'timestamp': r.length > 2 ? r[2].trim() : '',
+          'appealType': r.length > 3 ? r[3].trim() : '',
+          'reviewed': isRev,
+          'status': status,
+          'resultText': r.length > 5 ? r[5].trim() : '',
+          'bonusPeriodical': bPer,
+          'bonusPractical': bPrac,
+          'origPeriodical': r.length > 8 ? r[8].trim() : '—',
+          'origPractical': r.length > 9 ? r[9].trim() : '—',
+          'currentPeriodical': r.length > 8 ? r[8].trim() : '—',
+          'currentPractical': r.length > 9 ? r[9].trim() : '—',
+          'comment': r.length > 12 ? r[12].trim() : '',
+        });
+      }
+      return <String, dynamic>{'success': true, 'appeals': list};
+    } catch (_) {
+      return <String, dynamic>{'success': true, 'appeals': <JsonMap>[]};
+    }
+  }
+
+  static Future<JsonMap> _fetchStudentGradeDirectly(
+    http.Client client,
+    String uni,
+    String prog,
+    String subj,
+    String studentId,
+  ) async {
+    final String cleanId = _normCode(studentId);
+    final String tk = resolveTrackKey(uni, prog);
+    final JsonMap? item = findSubjectByNameOrKey(subj);
+    if (item == null) {
+      return <String, dynamic>{'found': false, 'error': 'Invalid subject.'};
+    }
+    final JsonMap vis = await getMergedVisibilityMap();
+    final JsonMap tVis = asJsonMap(vis[tk]);
+    if (tVis[item['key']] == false) {
+      return <String, dynamic>{
+        'found': false,
+        'error': 'عذراً، نتائج هذا المقرر غير معلنة حالياً من قِبل أستاذ المقرر.',
+      };
+    }
+    final JsonMap sheetRes = await _fetchGradesSheetDirectly(client, uni, prog, subj);
+    if (sheetRes['success'] != true) {
+      return <String, dynamic>{'found': false, 'error': sheetRes['message'] ?? 'Sheet unavailable.'};
+    }
+    final List<JsonMap> students = asJsonMapList(sheetRes['students']);
+    for (final JsonMap st in students) {
+      if (_normCode(st['studentId']?.toString() ?? '') == cleanId) {
+        return <String, dynamic>{
+          'found': true,
+          'studentId': cleanId,
+          'studentName': st['name'],
+          'periodicalTitle': sheetRes['periodicalTitle'] ?? 'Periodical',
+          'periodicalMark': st['periodical'],
+          'hasPractical': sheetRes['hasPractical'] != false,
+          'practicalTitle': sheetRes['practicalTitle'] ?? 'Practical',
+          'practicalMark': st['practical'],
+          'totalMark': st['total'],
+          'appeal': <String, dynamic>{'submitted': false},
+        };
+      }
+    }
+    return <String, dynamic>{'found': false, 'error': 'Student ID ($cleanId) not found in $subj.'};
   }
 }
 
@@ -798,10 +1309,16 @@ class _YouTubeOriginalStyleIntroScreenState
                                                 'Understanding Microbes, Strengthening Health',
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
-                                                  fontSize: 13.5,
+                                                  fontSize: 14,
                                                   fontWeight: FontWeight.w900,
                                                   letterSpacing: _sloganTracking.value * 0.35,
-                                                  color: Colors.white,
+                                                  color: AppColors.gold,
+                                                  shadows: <Shadow>[
+                                                    Shadow(
+                                                      color: AppColors.gold.withOpacity(0.55),
+                                                      blurRadius: 12,
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ),
@@ -2264,23 +2781,20 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
     super.build(context);
     return Column(
       children: <Widget>[
-        // Sticky Multi-Subpage Navigation Bar matching admin.html
+        // Balanced 4-Segment Top Bar (fits 100% of screen width with zero cutoff)
         Container(
           color: AppColors.navyBar,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: <Widget>[
-                _buildTopSubpageTab('home', '🏠 Staff Home'),
-                const SizedBox(width: 5),
-                _buildTopSubpageTab('attendance', '📋 Doctor: Attendance (الغياب والأعذار)'),
-                const SizedBox(width: 5),
-                _buildTopSubpageTab('grades', '📊 Doctor: Grades (الدرجات والتظلمات)'),
-                const SizedBox(width: 5),
-                _buildTopSubpageTab('superadmin', '🛡️ Super Admin (التحكم الأعلى)'),
-              ],
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(
+            children: <Widget>[
+              Expanded(child: _buildTopSubpageTab('home', '🏠 Home')),
+              const SizedBox(width: 5),
+              Expanded(child: _buildTopSubpageTab('attendance', '📋 Attendance')),
+              const SizedBox(width: 5),
+              Expanded(child: _buildTopSubpageTab('grades', '📊 Grades')),
+              const SizedBox(width: 5),
+              Expanded(child: _buildTopSubpageTab('superadmin', '🛡️ Master')),
+            ],
           ),
         ),
         Expanded(
@@ -2294,25 +2808,29 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
     final bool active = _staffSubpage == key;
     return InkWell(
       onTap: () => _navigateSubpage(key),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      borderRadius: BorderRadius.circular(9),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 4),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           gradient: active
               ? const LinearGradient(colors: <Color>[AppColors.gold, Color(0xFFEAB308)])
               : null,
-          color: active ? null : Colors.white.withOpacity(0.06),
-          borderRadius: BorderRadius.circular(8),
+          color: active ? null : Colors.white.withOpacity(0.07),
+          borderRadius: BorderRadius.circular(9),
           border: Border.all(
             color: active ? const Color(0xFFFDE047) : Colors.white12,
           ),
         ),
         child: Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            color: active ? AppColors.navyBar : const Color(0xFFCBD5E1),
+            fontSize: 10.5,
+            fontWeight: FontWeight.w900,
+            color: active ? AppColors.navyBar : const Color(0xFFE2E8F0),
           ),
         ),
       ),
@@ -2333,113 +2851,259 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
   }
 
   // ==========================================================================
-  // PAGE 1: STAFF HOME LANDING PAGE (HERO + 3 GATEWAY CARDS + 3 OVERVIEW CARDS)
+  // PAGE 1: STAFF HOME LANDING PAGE (LARGE, WELL-PROPORTIONED CARDS FILLING VIEW)
   // ==========================================================================
   Widget _buildStaffHomeLandingPage() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 18, 14, 24),
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(-0.4, -0.5),
-            radius: 1.4,
-            colors: <Color>[AppColors.emeraldMid, AppColors.navyBar],
-          ),
-          border: Border(bottom: BorderSide(color: AppColors.gold, width: 2.5)),
-        ),
-        child: Column(
-          children: <Widget>[
-            const Text(
-              'Microbiology & Immunology Portal',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15.5,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0.0, -0.4),
+                  radius: 1.35,
+                  colors: <Color>[
+                    Color(0xFF114B43),
+                    Color(0xFF0A2422),
+                    Color(0xFF0B1320),
+                  ],
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  // Compact Top Hero Title Lockup
+                  Column(
+                    children: <Widget>[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withOpacity(0.14),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: AppColors.gold.withOpacity(0.45)),
+                        ),
+                        child: const Text(
+                          'FACULTY OF PHARMACY • BENI-SUEF UNIVERSITY',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.7,
+                            color: AppColors.gold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Academic Control & Management Hub',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 3 Large Luxury Gateway Cards Filling the Screen
+                  _buildGatewayHeroCard(
+                    icon: Icons.fact_check_rounded,
+                    badge: 'PORTAL 01',
+                    title: 'Doctor Attendance & Excuses',
+                    arabicTitle: 'إدارة الغياب العملي والأعذار الطبية',
+                    pills: const <String>['12 Sections', 'Medical Reports', 'Live Roster'],
+                    btnText: 'Open Attendance Portal  →',
+                    accentColor: AppColors.emeraldLight,
+                    btnColor: AppColors.emerald,
+                    gradientColors: const <Color>[Color(0xFF0D3B33), Color(0xFF0F1E2E)],
+                    onTap: () => _navigateSubpage('attendance'),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  _buildGatewayHeroCard(
+                    icon: Icons.assessment_rounded,
+                    badge: 'PORTAL 02',
+                    title: 'Doctor Grades & Appeals',
+                    arabicTitle: 'درجات أعمال السنة والتظلمات وإعلان النتائج',
+                    pills: const <String>['Live Sheets', 'Grade Appeals', 'Course Visibility'],
+                    btnText: 'Open Grades Portal  →',
+                    accentColor: const Color(0xFF38BDF8),
+                    btnColor: const Color(0xFF38BDF8),
+                    gradientColors: const <Color>[Color(0xFF0E2F3F), Color(0xFF0F172A)],
+                    onTap: () => _navigateSubpage('grades'),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  _buildGatewayHeroCard(
+                    icon: Icons.admin_panel_settings_rounded,
+                    badge: 'MASTER HUB',
+                    title: 'Super Admin Master Control',
+                    arabicTitle: 'لوحة التحكم العليا وصلاحيات الدكاترة والأرشفة',
+                    pills: const <String>['36-Course Matrix', 'Super Admins', 'Drive Archive'],
+                    btnText: 'Open Super Admin Hub  →',
+                    accentColor: AppColors.gold,
+                    btnColor: AppColors.gold,
+                    gradientColors: const <Color>[Color(0xFF272014), Color(0xFF0F172A)],
+                    onTap: () => _navigateSubpage('superadmin'),
+                  ),
+
+                  const SizedBox(height: 8),
+                ],
               ),
             ),
-            const SizedBox(height: 14),
-            _buildGatewayHeroCard(
-              emoji: '📋',
-              title: 'Doctor Attendance & Excuses',
-              btnText: 'Open Attendance →',
-              borderColor: AppColors.emeraldLight,
-              btnColor: AppColors.emerald,
-              onTap: () => _navigateSubpage('attendance'),
-            ),
-            const SizedBox(height: 10),
-            _buildGatewayHeroCard(
-              emoji: '📊',
-              title: 'Doctor Grades & Appeals',
-              btnText: 'Open Grades →',
-              borderColor: const Color(0xFF38BDF8),
-              btnColor: const Color(0xFF38BDF8),
-              onTap: () => _navigateSubpage('grades'),
-            ),
-            const SizedBox(height: 10),
-            _buildGatewayHeroCard(
-              emoji: '🛡️',
-              title: 'Super Admin Control',
-              btnText: 'Open Super Admin →',
-              borderColor: AppColors.gold,
-              btnColor: AppColors.gold,
-              onTap: () => _navigateSubpage('superadmin'),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildGatewayHeroCard({
-    required String emoji,
+    required IconData icon,
+    required String badge,
     required String title,
+    required String arabicTitle,
+    required List<String> pills,
     required String btnText,
-    required Color borderColor,
+    required Color accentColor,
     required Color btnColor,
+    required List<Color> gradientColors,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: <Color>[Color(0xFF0F2925), Color(0xFF0F172A)],
+          gradient: LinearGradient(
+            colors: gradientColors,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: borderColor.withOpacity(0.55), width: 1.3),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: accentColor.withOpacity(0.55), width: 1.5),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: Colors.black.withOpacity(0.28),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: borderColor.withOpacity(0.16),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: Text(emoji, style: const TextStyle(fontSize: 15)),
+            Row(
+              children: <Widget>[
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: accentColor.withOpacity(0.16),
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(color: accentColor.withOpacity(0.45), width: 1.2),
+                  ),
+                  child: Icon(icon, color: accentColor, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        arabicTitle,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: accentColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  decoration: BoxDecoration(
+                    color: accentColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: accentColor.withOpacity(0.4)),
+                  ),
+                  child: Text(
+                    badge,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6,
+                      color: accentColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white),
-              ),
+            const SizedBox(height: 12),
+            // Feature Pills Group
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: pills.map((String p) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.07),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: Text(
+                    p,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFFE2E8F0),
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
+            const SizedBox(height: 13),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: btnColor,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(11),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: btnColor.withOpacity(0.28),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Text(
                 btnText,
-                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF0F172A),
+                ),
               ),
             ),
           ],
@@ -3427,15 +4091,23 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                   children: <Widget>[
                     if (_showCredDrawer) _buildCredentialsDrawerCard(),
 
-                    // Unified Course Selector + Instant Course Visibility Bar
+                    // Unified Course Selector + Course Visibility Status Card + Clean 3-Sub-Tab Group
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(13),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AppColors.cardBorder),
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: AppColors.navyBar.withOpacity(0.06),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
                           Row(
                             children: <Widget>[
@@ -3443,7 +4115,7 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                                 child: DropdownButtonFormField<String>(
                                   value: allowedUnis.contains(_grdUni) ? _grdUni : null,
                                   isExpanded: true,
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMain),
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textMain),
                                   decoration: const InputDecoration(labelText: 'University'),
                                   items: allowedUnis
                                       .map((String u) => StringDropItem(
@@ -3465,7 +4137,7 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                                 child: DropdownButtonFormField<String>(
                                   value: allowedProgs.contains(_grdProg) ? _grdProg : null,
                                   isExpanded: true,
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMain),
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textMain),
                                   decoration: const InputDecoration(labelText: 'Program'),
                                   items: allowedProgs
                                       .map((String p) => StringDropItem(value: p, child: Text('PharmD $p')))
@@ -3481,59 +4153,89 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  value: allowedSubjs.contains(_grdSubj) ? _grdSubj : null,
-                                  isExpanded: true,
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMain),
-                                  decoration: const InputDecoration(labelText: 'Course'),
-                                  items: allowedSubjs
-                                      .map((String s) => StringDropItem(value: s, child: Text(s, overflow: TextOverflow.ellipsis)))
-                                      .toList(),
-                                  onChanged: (String? v) {
-                                    if (v != null) setState(() => _grdSubj = v);
-                                  },
+                          const SizedBox(height: 9),
+                          DropdownButtonFormField<String>(
+                            value: allowedSubjs.contains(_grdSubj) ? _grdSubj : null,
+                            isExpanded: true,
+                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: AppColors.textMain),
+                            decoration: const InputDecoration(
+                              labelText: 'Selected Course',
+                              prefixIcon: Icon(Icons.menu_book_rounded, size: 16, color: AppColors.emeraldDark),
+                            ),
+                            items: allowedSubjs
+                                .map((String s) => StringDropItem(value: s, child: Text(s, overflow: TextOverflow.ellipsis)))
+                                .toList(),
+                            onChanged: (String? v) {
+                              if (v != null) setState(() => _grdSubj = v);
+                            },
+                          ),
+                          const SizedBox(height: 9),
+                          // Dedicated Course Visibility Status Bar
+                          InkWell(
+                            onTap: () => _toggleCourseVis(tk, _grdSubj, !isCourseOpen),
+                            borderRadius: BorderRadius.circular(11),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isCourseOpen ? AppColors.emeraldSoft : AppColors.dangerSoft,
+                                borderRadius: BorderRadius.circular(11),
+                                border: Border.all(
+                                  color: isCourseOpen ? AppColors.emerald : AppColors.danger,
+                                  width: 1.2,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              InkWell(
-                                onTap: () => _toggleCourseVis(tk, _grdSubj, !isCourseOpen),
-                                borderRadius: BorderRadius.circular(9),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-                                  decoration: BoxDecoration(
-                                    color: isCourseOpen ? AppColors.emeraldSoft : AppColors.dangerSoft,
-                                    borderRadius: BorderRadius.circular(9),
-                                    border: Border.all(color: isCourseOpen ? AppColors.emerald : AppColors.danger),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Row(
+                                    children: <Widget>[
+                                      Icon(
+                                        isCourseOpen ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                                        size: 16,
+                                        color: isCourseOpen ? AppColors.emeraldDark : AppColors.danger,
+                                      ),
+                                      const SizedBox(width: 7),
+                                      Text(
+                                        isCourseOpen
+                                            ? 'حالة المقرر: معلنة للطلاب (Announced)'
+                                            : 'حالة المقرر: محجوبة عن الطلاب (Hidden)',
+                                        style: TextStyle(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w900,
+                                          color: isCourseOpen ? AppColors.emeraldDark : AppColors.danger,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  child: Text(
-                                    isCourseOpen ? '🟢 معلنة (Announced)' : '🔒 محجوبة (Hidden)',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
                                       color: isCourseOpen ? AppColors.emeraldDark : AppColors.danger,
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      isCourseOpen ? 'حجب النتيجة' : 'إعلان النتيجة',
+                                      style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: Colors.white),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                           const SizedBox(height: 10),
+                          // Clean 3-Sub-Tab Group (No text cutoff)
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(11),
                               border: Border.all(color: AppColors.cardBorder),
                             ),
                             child: Row(
                               children: <Widget>[
                                 Expanded(
                                   child: _buildSubTabButton(
-                                    label: '⚖️ 1. التظلمات (${_appealsList.length})',
+                                    label: '⚖️ التظلمات (${_appealsList.length})',
                                     active: _grdInnerTab == 0,
                                     onTap: () {
                                       setState(() => _grdInnerTab = 0);
@@ -3544,7 +4246,7 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: _buildSubTabButton(
-                                    label: '📊 2. شيت الدرجات',
+                                    label: '📊 شيت الدرجات',
                                     active: _grdInnerTab == 1,
                                     onTap: () {
                                       setState(() => _grdInnerTab = 1);
@@ -3555,7 +4257,7 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: _buildSubTabButton(
-                                    label: '🔓 3. إعلان وحجب المقررات',
+                                    label: '🔓 إعلان المقررات',
                                     active: _grdInnerTab == 2,
                                     onTap: () => setState(() => _grdInnerTab = 2),
                                   ),
@@ -3857,47 +4559,113 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
             .toList();
         if (allowed.isEmpty) return const SizedBox.shrink();
         return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(10),
+          margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: AppColors.cardBorder),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.cardBorder, width: 1.2),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: AppColors.navyBar.withOpacity(0.05),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('📍 ${kTrackLabels[tk] ?? tk}', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: AppColors.navyBar)),
-              const Divider(height: 10),
-              ...allowed.map((JsonMap s) {
-                final String sk = s['key'].toString();
-                final bool open = _isCourseVisible(tk, sk);
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(s['name'].toString(), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
-                            Text(
-                              open ? '● معلنة للطلاب (Announced)' : '● محجوبة عن الطلاب (Hidden)',
-                              style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: open ? AppColors.emeraldDark : AppColors.danger),
-                            ),
-                          ],
+              // Sleek Track Group Header
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: <Color>[AppColors.navyBar, AppColors.emeraldDark],
+                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        const Icon(Icons.layers_rounded, size: 15, color: AppColors.gold),
+                        const SizedBox(width: 7),
+                        Text(
+                          kTrackLabels[tk] ?? tk,
+                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: AppColors.gold.withOpacity(0.45)),
+                      ),
+                      child: Text(
+                        '${allowed.length} Courses',
+                        style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppColors.gold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  children: allowed.map((JsonMap s) {
+                    final String sk = s['key'].toString();
+                    final bool open = _isCourseVisible(tk, sk);
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: open ? AppColors.emeraldSoft.withOpacity(0.45) : AppColors.dangerSoft.withOpacity(0.35),
+                        borderRadius: BorderRadius.circular(11),
+                        border: Border.all(
+                          color: open ? AppColors.emerald.withOpacity(0.4) : AppColors.danger.withOpacity(0.4),
                         ),
                       ),
-                      Switch(
-                        value: open,
-                        activeColor: AppColors.emerald,
-                        onChanged: (bool v) => _toggleCourseVis(tk, sk, v),
+                      child: Row(
+                        children: <Widget>[
+                          Icon(
+                            open ? Icons.check_circle_rounded : Icons.lock_rounded,
+                            size: 16,
+                            color: open ? AppColors.emeraldDark : AppColors.danger,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  s['name'].toString(),
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: AppColors.textMain),
+                                ),
+                                Text(
+                                  open ? 'معلنة للطلاب (Announced)' : 'محجوبة عن الطلاب (Hidden)',
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: open ? AppColors.emeraldDark : AppColors.danger,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: open,
+                            activeColor: AppColors.emerald,
+                            onChanged: (bool v) => _toggleCourseVis(tk, sk, v),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              }),
+                    );
+                  }).toList(),
+                ),
+              ),
             ],
           ),
         );
@@ -3916,7 +4684,7 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
     required VoidCallback onOppositeTap,
   }) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 34),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 30),
       decoration: const BoxDecoration(
         gradient: RadialGradient(
           center: Alignment(0.6, -0.4),
@@ -3930,33 +4698,29 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              InkWell(
-                onTap: () => _navigateSubpage('home'),
+              Flexible(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(999),
                     border: Border.all(color: Colors.white24),
                   ),
-                  child: const Text('← Staff Home', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+                  child: Text(
+                    '👨‍⚕️ $_doctorName',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.gold),
+                  ),
                 ),
               ),
-              Wrap(
-                spacing: 5,
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  InkWell(
-                    onTap: onOppositeTap,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: AppColors.gold, borderRadius: BorderRadius.circular(8)),
-                      child: Text(oppositeButtonLabel, style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: AppColors.navyBar)),
-                    ),
-                  ),
                   InkWell(
                     onTap: () => setState(() => _showCredDrawer = !_showCredDrawer),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -3965,12 +4729,13 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                       child: const Text('⚙️ Account', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppColors.gold)),
                     ),
                   ),
+                  const SizedBox(width: 6),
                   InkWell(
                     onTap: _logoutDoctor,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.danger.withOpacity(0.25),
+                        color: AppColors.danger.withOpacity(0.28),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text('🚪 Sign Out', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: Colors.white)),
@@ -3980,18 +4745,17 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           RichText(
             textAlign: TextAlign.center,
             text: TextSpan(
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+              style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w900, color: Colors.white),
               children: <TextSpan>[
                 TextSpan(text: titleWhite),
                 TextSpan(text: titleGold, style: const TextStyle(color: AppColors.gold)),
               ],
             ),
           ),
-
         ],
       ),
     );
@@ -4391,13 +5155,29 @@ class _SuperAdminWorkspaceState extends State<SuperAdminWorkspace>
       true,
       makeSuper ? 'Promoting to Super Admin...' : 'Updating Role...',
     );
-    final dynamic res = await PortalApiService.callAction(
+    dynamic res = await PortalApiService.callAction(
       'toggleDoctorSuperAdminByMaster',
       <dynamic>[_masterUser, _masterPass, targetUser, makeSuper],
     );
+    JsonMap m = asJsonMap(res);
+    if (m['success'] != true) {
+      final List<String> updatedPerms = makeSuper
+          ? <String>[...buildAll36CoursePerms(), ...buildDefaultActionPerms(), 'ROLE_SUPER_ADMIN']
+          : asStringList(doc['permissions']).where((String p) => p != 'ROLE_SUPER_ADMIN').toList();
+      res = await PortalApiService.callAction(
+        'saveDoctorAccountByMaster',
+        <dynamic>[
+          _masterUser,
+          _masterPass,
+          doc['doctorName'] ?? targetUser,
+          targetUser,
+          doc['password'] ?? '',
+          updatedPerms.isEmpty ? buildAll36CoursePerms() : updatedPerms,
+        ],
+      );
+      m = asJsonMap(res);
+    }
     widget.onLoadingChanged(false);
-
-    final JsonMap m = asJsonMap(res);
     if (m['success'] == true) {
       setState(() {
         _doctorsList = asJsonMapList(m['doctors']);
