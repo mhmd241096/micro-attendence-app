@@ -167,7 +167,12 @@ String resolveTrackKey(String university, String program) {
 }
 
 JsonMap? findSubjectByNameOrKey(String raw) {
-  final String clean = raw.trim().toLowerCase();
+  String clean = raw.trim().toLowerCase();
+  if (clean == 'pharmmicro' || clean == 'pharmamicro' || clean == 'pharm_micro') {
+    clean = 'pharmamicro';
+  } else if (clean == 'biotechnology' || clean == 'biotech') {
+    clean = 'biotech';
+  }
   for (final JsonMap item in kSubjectCatalog) {
     if (item['key'].toString().toLowerCase() == clean ||
         item['altKey'].toString().toLowerCase() == clean ||
@@ -184,7 +189,16 @@ bool isDoctorCourseAllowed(List<String> perms, String trackKey, String subjectNa
   final JsonMap? item = findSubjectByNameOrKey(subjectNameOrKey);
   final String canonicalKey = item != null ? item['key'].toString() : subjectNameOrKey;
   final String altKey = item != null ? item['altKey'].toString() : subjectNameOrKey;
-  return perms.contains('${trackKey}__$canonicalKey') || perms.contains('${trackKey}__$altKey');
+  if (perms.contains('${trackKey}__$canonicalKey') || perms.contains('${trackKey}__$altKey')) {
+    return true;
+  }
+  if (canonicalKey == 'pharmaMicro' && perms.contains('${trackKey}__pharmMicro')) {
+    return true;
+  }
+  if (canonicalKey == 'biotech' && perms.contains('${trackKey}__biotechnology')) {
+    return true;
+  }
+  return false;
 }
 
 bool isDoctorActionAllowed(List<String> perms, String actionKey) {
@@ -251,24 +265,23 @@ class PortalApiService {
         ..headers['Content-Type'] = 'text/plain;charset=utf-8'
         ..body = bodyJson;
 
-      http.StreamedResponse streamed = await client.send(req).timeout(const Duration(seconds: 45));
+      final http.StreamedResponse streamed = await client.send(req).timeout(const Duration(seconds: 45));
+      http.Response response = await http.Response.fromStream(streamed);
       int redirects = 0;
 
-      while ((streamed.statusCode == 301 ||
-              streamed.statusCode == 302 ||
-              streamed.statusCode == 303 ||
-              streamed.statusCode == 307 ||
-              streamed.statusCode == 308) &&
+      while ((response.statusCode == 301 ||
+              response.statusCode == 302 ||
+              response.statusCode == 303 ||
+              response.statusCode == 307 ||
+              response.statusCode == 308) &&
           redirects < 5) {
-        final String? location = streamed.headers['location'] ?? streamed.headers['Location'];
+        final String? location = response.headers['location'] ?? response.headers['Location'];
         if (location == null || location.isEmpty) break;
-        currentUri = Uri.parse(location);
-        final http.Request getReq = http.Request('GET', currentUri)..followRedirects = true;
-        streamed = await client.send(getReq).timeout(const Duration(seconds: 45));
+        response = await client.get(Uri.parse(location)).timeout(const Duration(seconds: 45));
         redirects++;
       }
 
-      final String responseText = await streamed.stream.bytesToString();
+      final String responseText = response.body;
       if (responseText.trim().isEmpty) {
         return <String, dynamic>{'success': false, 'message': 'Empty response from server.'};
       }
@@ -760,32 +773,16 @@ class _YouTubeOriginalStyleIntroScreenState
 
                           const SizedBox(height: 22),
 
-                          // 2. Center Slogan
-                          Opacity(
-                            opacity: _sloganOpacity.value,
-                            child: Text(
-                              'UNDERSTANDING MICROBES, STRENGTHENING HEALTH',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: _sloganTracking.value,
-                                color: AppColors.gold,
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 18),
-
-                          // 3. YouTube Originals Split-Bar Aperture Reveal
+                          // 2. YouTube Originals Split-Bar Aperture Reveal:
+                          // "Understanding Microbes, Strengthening Health" emerges BETWEEN the two splitting lines!
                           if (_barDrawWidth.value > 0.01)
                             SizedBox(
                               width: maxBarWidth,
-                              height: 76,
+                              height: 78,
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: <Widget>[
-                                  // Emerging Title clipped strictly inside the opening between Top Bar & Bottom Bar
+                                  // Slogan clipped strictly inside the opening between Top Bar & Bottom Bar
                                   ClipRect(
                                     child: SizedBox(
                                       width: currentBarWidth,
@@ -795,20 +792,18 @@ class _YouTubeOriginalStyleIntroScreenState
                                           offset: Offset(0, _wordSlideY.value),
                                           child: Transform.scale(
                                             scale: _wordScale.value,
-                                            child: const Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: <Widget>[
-                                                Text(
-                                                  'MICROBIOLOGY & IMMUNOLOGY',
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    fontSize: 16.5,
-                                                    fontWeight: FontWeight.w900,
-                                                    letterSpacing: 1.3,
-                                                    color: Colors.white,
-                                                  ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                                              child: Text(
+                                                'Understanding Microbes, Strengthening Health',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: 13.5,
+                                                  fontWeight: FontWeight.w900,
+                                                  letterSpacing: _sloganTracking.value * 0.35,
+                                                  color: Colors.white,
                                                 ),
-                                              ],
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -857,9 +852,9 @@ class _YouTubeOriginalStyleIntroScreenState
                               ),
                             )
                           else
-                            const SizedBox(height: 76),
+                            const SizedBox(height: 78),
 
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 16),
 
                           // 4. Lower Institutional Lockup:
                           // "Microbiology Department" / "Faculty of Pharmacy, Beni-Suef University"
@@ -1484,6 +1479,7 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
   }
 
   List<String> _allowedSubjectsFor(String uni, String prog) {
+    if (uni.isEmpty || prog.isEmpty) return <String>[];
     final String tk = resolveTrackKey(uni, prog);
     final List<String> list = <String>[];
     for (final JsonMap s in kSubjectCatalog) {
@@ -1492,7 +1488,51 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
         list.add(name);
       }
     }
-    return list.isEmpty ? kSubjectCatalog.map((JsonMap e) => e['name'].toString()).toList() : list;
+    return list;
+  }
+
+  List<String> _allowedUniversitiesForDoctor() {
+    final List<String> unis = <String>[];
+    final bool hasBsu = kSubjectCatalog.any((JsonMap s) =>
+        isDoctorCourseAllowed(_permissions, 'BSU_Clinical', s['name'].toString()) ||
+        isDoctorCourseAllowed(_permissions, 'BSU_General', s['name'].toString()));
+    final bool hasBsnu = kSubjectCatalog.any((JsonMap s) =>
+        isDoctorCourseAllowed(_permissions, 'BSNU_Clinical', s['name'].toString()) ||
+        isDoctorCourseAllowed(_permissions, 'BSNU_General', s['name'].toString()));
+    if (hasBsu) unis.add('Beni-Suef University');
+    if (hasBsnu) unis.add('Beni-Suef National University');
+    return unis;
+  }
+
+  List<String> _allowedProgramsForDoctor(String uni) {
+    if (uni.isEmpty) return <String>[];
+    final List<String> progs = <String>[];
+    for (final String p in <String>['Clinical', 'General']) {
+      if (_allowedSubjectsFor(uni, p).isNotEmpty) {
+        progs.add(p);
+      }
+    }
+    return progs;
+  }
+
+  void _normalizeDoctorTrackSelections() {
+    final List<String> unis = _allowedUniversitiesForDoctor();
+    if (unis.isNotEmpty) {
+      if (!unis.contains(_attUni)) _attUni = unis.first;
+      if (!unis.contains(_grdUni)) _grdUni = unis.first;
+    } else {
+      _attUni = '';
+      _grdUni = '';
+    }
+    final List<String> attProgs = _allowedProgramsForDoctor(_attUni);
+    _attProg = attProgs.contains(_attProg) ? _attProg : (attProgs.isNotEmpty ? attProgs.first : '');
+    final List<String> attSubjs = _allowedSubjectsFor(_attUni, _attProg);
+    _attSubj = attSubjs.contains(_attSubj) ? _attSubj : (attSubjs.isNotEmpty ? attSubjs.first : '');
+
+    final List<String> grdProgs = _allowedProgramsForDoctor(_grdUni);
+    _grdProg = grdProgs.contains(_grdProg) ? _grdProg : (grdProgs.isNotEmpty ? grdProgs.first : '');
+    final List<String> grdSubjs = _allowedSubjectsFor(_grdUni, _grdProg);
+    _grdSubj = grdSubjs.contains(_grdSubj) ? _grdSubj : (grdSubjs.isNotEmpty ? grdSubjs.first : '');
   }
 
   void _navigateSubpage(String target) {
@@ -1538,15 +1578,11 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
         _isPromotedSuperAdmin = map['role'] == 'superadmin' ||
             map['isSuperAdmin'] == true ||
             perms.contains('ROLE_SUPER_ADMIN');
-        _permissions = perms.isEmpty ? <String>['ALL'] : perms;
+        _permissions = perms;
         _visibilityMap = asJsonMap(map['visibility']);
         _newUserCtrl.text = _username;
         _newPassCtrl.text = _password;
-
-        final List<String> attAllowed = _allowedSubjectsFor(_attUni, _attProg);
-        if (!attAllowed.contains(_attSubj)) _attSubj = attAllowed.first;
-        final List<String> grdAllowed = _allowedSubjectsFor(_grdUni, _grdProg);
-        if (!grdAllowed.contains(_grdSubj)) _grdSubj = grdAllowed.first;
+        _normalizeDoctorTrackSelections();
 
         if (_staffSubpage == 'home') {
           _staffSubpage = _pendingTargetSubpage;
@@ -1861,8 +1897,10 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
   bool _isCourseVisible(String trackKey, String subjNameOrKey) {
     final JsonMap? item = findSubjectByNameOrKey(subjNameOrKey);
     final String sk = item != null ? item['key'].toString() : subjNameOrKey;
+    final String altKey = item != null ? item['altKey'].toString() : sk;
     final JsonMap tMap = asJsonMap(_visibilityMap[trackKey]);
-    return tMap[sk] != false;
+    final dynamic rawVal = tMap.containsKey(sk) ? tMap[sk] : tMap[altKey];
+    return !(rawVal == false || rawVal?.toString().toLowerCase() == 'false');
   }
 
   Future<void> _toggleCourseVis(String trackKey, String subjNameOrKey, bool nextOpen) async {
@@ -1870,9 +1908,20 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
       _showToast('Course visibility switching is disabled.', isError: true);
       return;
     }
+    if (trackKey.isEmpty || subjNameOrKey.isEmpty) return;
     final JsonMap? item = findSubjectByNameOrKey(subjNameOrKey);
     final String sk = item != null ? item['key'].toString() : subjNameOrKey;
-    widget.onLoadingChanged(true, 'Updating Course Visibility...');
+    final String altKey = item != null ? item['altKey'].toString() : sk;
+
+    // Optimistic UI update so switch flips immediately without glitching
+    setState(() {
+      final JsonMap curTrack = asJsonMap(_visibilityMap[trackKey]);
+      curTrack[sk] = nextOpen;
+      curTrack[altKey] = nextOpen;
+      _visibilityMap[trackKey] = curTrack;
+    });
+
+    widget.onLoadingChanged(true, nextOpen ? 'Announcing Course...' : 'Hiding Course...');
     final dynamic res = await PortalApiService.callAction(
       'toggleSingleSubjectVisibility',
       <dynamic>[_username, _password, trackKey, sk, nextOpen],
@@ -1880,9 +1929,18 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
     widget.onLoadingChanged(false);
     final JsonMap m = asJsonMap(res);
     if (m['success'] == true) {
-      setState(() => _visibilityMap = asJsonMap(m['visibility']));
-      _showToast(m['message']?.toString() ?? 'Visibility updated.');
+      if (m['visibility'] is Map) {
+        setState(() => _visibilityMap = asJsonMap(m['visibility']));
+      }
+      _showToast(m['message']?.toString() ?? (nextOpen ? '✅ Course Announced' : '🔒 Course Hidden'));
     } else {
+      // Revert on failure
+      setState(() {
+        final JsonMap curTrack = asJsonMap(_visibilityMap[trackKey]);
+        curTrack[sk] = !nextOpen;
+        curTrack[altKey] = !nextOpen;
+        _visibilityMap[trackKey] = curTrack;
+      });
       _showToast(m['message']?.toString() ?? 'Error updating visibility.', isError: true);
     }
   }
@@ -2279,155 +2337,64 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
   // ==========================================================================
   Widget _buildStaffHomeLandingPage() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          // Hero Header matching admin.html
-          Container(
-            padding: const EdgeInsets.fromLTRB(14, 16, 14, 22),
-            decoration: const BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment(-0.4, -0.5),
-                radius: 1.4,
-                colors: <Color>[
-                  AppColors.emeraldMid,
-                  AppColors.navyBar,
-                ],
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 18, 14, 24),
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(-0.4, -0.5),
+            radius: 1.4,
+            colors: <Color>[AppColors.emeraldMid, AppColors.navyBar],
+          ),
+          border: Border(bottom: BorderSide(color: AppColors.gold, width: 2.5)),
+        ),
+        child: Column(
+          children: <Widget>[
+            const Text(
+              'Microbiology & Immunology Portal',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15.5,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
               ),
-              border: Border(bottom: BorderSide(color: AppColors.gold, width: 2.5)),
             ),
-            child: Column(
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.gold.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: AppColors.gold.withOpacity(0.35)),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      OriginalBadgeLogo(size: 20, borderRadius: 5, showGoldBorder: false),
-                      SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          'OFFICIAL FACULTY & ADMINISTRATION HUB • BSU',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                            color: Color(0xFFFCD34D),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Academic Control & Faculty Management Hub',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    height: 1.25,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Dedicated multi-page academic portal for Course Coordinators (Doctors) and Super Admin across Beni-Suef University. Choose your dedicated subpage below:',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 10.5, color: Color(0xFFCBD5E1), height: 1.35),
-                ),
-                const SizedBox(height: 14),
-
-                // Gateway Card 1: Doctor Attendance & Excuses
-                _buildGatewayHeroCard(
-                  emoji: '📋',
-                  badge: 'Subpage 1 • غياب وأعذار',
-                  title: 'Doctor Attendance & Excuses',
-                  arabicSub: 'بوابة الدكاترة لإدارة الغياب العملي والأعذار الطبية',
-                  desc: 'Review student medical excuse photos, inspect 12-section attendance records, approve/reject excuses (auto-syncing E/A), and edit course attendance rosters directly.',
-                  btnText: 'Open Attendance Subpage (دخول صفحة الغياب) →',
-                  borderColor: AppColors.emeraldLight,
-                  btnColor: AppColors.emerald,
-                  onTap: () => _navigateSubpage('attendance'),
-                ),
-                const SizedBox(height: 10),
-
-                // Gateway Card 2: Doctor Grades & Appeals Hub
-                _buildGatewayHeroCard(
-                  emoji: '📊',
-                  badge: 'Subpage 2 • درجات وتظلمات',
-                  title: 'Doctor Grades & Appeals Hub',
-                  arabicSub: 'بوابة الدكاترة لدرجات أعمال السنة والتظلمات وإعلان المقررات',
-                  desc: 'Review student grade appeals, add bonus marks synced directly to sheets, explore & edit live coursework grade sheets inline, and toggle course visibility switches.',
-                  btnText: 'Open Grades Subpage (دخول صفحة الدرجات) →',
-                  borderColor: const Color(0xFF38BDF8),
-                  btnColor: const Color(0xFF38BDF8),
-                  onTap: () => _navigateSubpage('grades'),
-                ),
-                const SizedBox(height: 10),
-
-                // Gateway Card 3: Super Admin Master Control
-                _buildGatewayHeroCard(
-                  emoji: '🛡️',
-                  badge: 'Subpage 3 • التحكم الأعلى',
-                  title: 'Super Admin Master Control',
-                  arabicSub: 'لوحة التحكم العليا (مصفوفة الـ 36 مقرر + الغياب + الأرشفة + Audit Log)',
-                  desc: 'Manage doctor accounts & the 36-course permissions matrix, promote doctors to Super Admin, edit section dates (1–12), archive/clear all 8 workbooks, and inspect the Audit Log.',
-                  btnText: 'Open Super Admin Subpage (لوحة السوبر أدمن) →',
-                  borderColor: AppColors.gold,
-                  btnColor: AppColors.gold,
-                  onTap: () => _navigateSubpage('superadmin'),
-                ),
-              ],
+            const SizedBox(height: 14),
+            _buildGatewayHeroCard(
+              emoji: '📋',
+              title: 'Doctor Attendance & Excuses',
+              btnText: 'Open Attendance →',
+              borderColor: AppColors.emeraldLight,
+              btnColor: AppColors.emerald,
+              onTap: () => _navigateSubpage('attendance'),
             ),
-          ),
-
-          // Department Overview 3 Cards below Hero (matching admin.html)
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: <Widget>[
-                _buildOverviewFeatureCard(
-                  emoji: '📋',
-                  title: 'Attendance & Excuses Subpage',
-                  desc: 'مراجعة الأعذار الطبية المرفوعة من الطلاب بالصور، مع إمكانية التعديل المباشر لغياب أي طالب في الـ 12 سكشن أو تعديل كشف المادة بالكامل.',
-                  bgTint: const Color(0xFFD1FAE5),
-                ),
-                const SizedBox(height: 8),
-                _buildOverviewFeatureCard(
-                  emoji: '📊',
-                  title: 'Grades, Sheets & Appeals Subpage',
-                  desc: 'فحص تظلمات درجات أعمال السنة وإضافة درجات الزيادة تلقائياً للشيت، مع مستكشف ومعدل شيت الدرجات المباشر ومفاتيح إعلان وحجب المقررات.',
-                  bgTint: const Color(0xFFE0F2FE),
-                ),
-                const SizedBox(height: 8),
-                _buildOverviewFeatureCard(
-                  emoji: '🛡️',
-                  title: 'Super Admin Master Subpage',
-                  desc: 'التحكم المركزي في حسابات الدكاترة وترقية السوبر أدمن ومصفوفة الـ 36 مقرر، تعديل تواريخ السكاشن، أرشفة وتفريغ الشيتات الـ 8، وسجل المراقبة الموحد.',
-                  bgTint: const Color(0xFFFEF3C7),
-                ),
-              ],
+            const SizedBox(height: 10),
+            _buildGatewayHeroCard(
+              emoji: '📊',
+              title: 'Doctor Grades & Appeals',
+              btnText: 'Open Grades →',
+              borderColor: const Color(0xFF38BDF8),
+              btnColor: const Color(0xFF38BDF8),
+              onTap: () => _navigateSubpage('grades'),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            _buildGatewayHeroCard(
+              emoji: '🛡️',
+              title: 'Super Admin Control',
+              btnText: 'Open Super Admin →',
+              borderColor: AppColors.gold,
+              btnColor: AppColors.gold,
+              onTap: () => _navigateSubpage('superadmin'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildGatewayHeroCard({
     required String emoji,
-    required String badge,
     required String title,
-    required String arabicSub,
-    required String desc,
     required String btnText,
     required Color borderColor,
     required Color btnColor,
@@ -2435,73 +2402,40 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: <Color>[Color(0xFF0F2925), Color(0xFF0F172A)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor.withOpacity(0.55), width: 1.4),
-          boxShadow: <BoxShadow>[
-            BoxShadow(color: Colors.black.withOpacity(0.22), blurRadius: 12, offset: const Offset(0, 4)),
-          ],
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: borderColor.withOpacity(0.55), width: 1.3),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: borderColor.withOpacity(0.16),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: borderColor.withOpacity(0.35)),
-                  ),
-                  child: Text(emoji, style: const TextStyle(fontSize: 15)),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: borderColor.withOpacity(0.16),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: borderColor.withOpacity(0.35)),
-                  ),
-                  child: Text(
-                    badge,
-                    style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: borderColor),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w900, color: Colors.white),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              arabicSub,
-              style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.gold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              desc,
-              style: const TextStyle(fontSize: 10, color: Color(0xFFCBD5E1), height: 1.35),
-            ),
-            const SizedBox(height: 9),
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 7),
-              alignment: Alignment.center,
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: borderColor.withOpacity(0.16),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Text(emoji, style: const TextStyle(fontSize: 15)),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: btnColor,
-                borderRadius: BorderRadius.circular(9),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 btnText,
@@ -2510,45 +2444,6 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildOverviewFeatureCard({
-    required String emoji,
-    required String title,
-    required String desc,
-    required Color bgTint,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(11),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: AppColors.cardBorder),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: bgTint, borderRadius: BorderRadius.circular(9)),
-            child: Text(emoji, style: const TextStyle(fontSize: 15)),
-          ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textMain)),
-                const SizedBox(height: 2),
-                Text(desc, style: const TextStyle(fontSize: 10, color: AppColors.textMuted, height: 1.35)),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -2604,12 +2499,7 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w900, color: AppColors.textMain),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'سجّل دخولك مرة واحدة لفتح كلٍ من صفحة الغياب والأعذار وصفحة الدرجات والتظلمات للمقررات المخصصة لك.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, height: 1.35),
-                ),
+
                 const SizedBox(height: 14),
                 TextField(
                   controller: _userCtrl,
@@ -2678,8 +2568,10 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
   // SUBPAGE 2: DOCTOR ATTENDANCE & MEDICAL EXCUSES PORTAL (FULL VISUAL DESIGN)
   // ==========================================================================
   Widget _buildDoctorAttendanceSubpage() {
+    _normalizeDoctorTrackSelections();
+    final List<String> allowedUnis = _allowedUniversitiesForDoctor();
+    final List<String> allowedProgs = _allowedProgramsForDoctor(_attUni);
     final List<String> allowedSubjs = _allowedSubjectsFor(_attUni, _attProg);
-    if (!allowedSubjs.contains(_attSubj)) _attSubj = allowedSubjs.first;
 
     return RefreshIndicator(
       color: AppColors.emeraldDark,
@@ -2730,17 +2622,22 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                             children: <Widget>[
                               Expanded(
                                 child: DropdownButtonFormField<String>(
-                                  value: _attUni,
+                                  value: allowedUnis.contains(_attUni) ? _attUni : null,
                                   isExpanded: true,
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMain),
-                                  decoration: const InputDecoration(labelText: '1. University (الجامعة)'),
-                                  items: const <StringDropItem>[
-                                    StringDropItem(value: 'Beni-Suef University', child: Text('BSU (الحكومية)')),
-                                    StringDropItem(value: 'Beni-Suef National University', child: Text('BSNU (الأهلية)')),
-                                  ],
+                                  decoration: const InputDecoration(labelText: 'University'),
+                                  items: allowedUnis
+                                      .map((String u) => StringDropItem(
+                                            value: u,
+                                            child: Text(u.contains('National') ? 'BSNU (الأهلية)' : 'BSU (الحكومية)'),
+                                          ))
+                                      .toList(),
                                   onChanged: (String? v) {
                                     if (v == null) return;
-                                    setState(() => _attUni = v);
+                                    setState(() {
+                                      _attUni = v;
+                                      _normalizeDoctorTrackSelections();
+                                    });
                                     _applyExcuseFilters();
                                   },
                                 ),
@@ -2748,17 +2645,19 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                               const SizedBox(width: 8),
                               Expanded(
                                 child: DropdownButtonFormField<String>(
-                                  value: _attProg,
+                                  value: allowedProgs.contains(_attProg) ? _attProg : null,
                                   isExpanded: true,
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMain),
-                                  decoration: const InputDecoration(labelText: '2. Program (البرنامج)'),
-                                  items: const <StringDropItem>[
-                                    StringDropItem(value: 'Clinical', child: Text('PharmD Clinical')),
-                                    StringDropItem(value: 'General', child: Text('PharmD General')),
-                                  ],
+                                  decoration: const InputDecoration(labelText: 'Program'),
+                                  items: allowedProgs
+                                      .map((String p) => StringDropItem(value: p, child: Text('PharmD $p')))
+                                      .toList(),
                                   onChanged: (String? v) {
                                     if (v == null) return;
-                                    setState(() => _attProg = v);
+                                    setState(() {
+                                      _attProg = v;
+                                      _normalizeDoctorTrackSelections();
+                                    });
                                     _applyExcuseFilters();
                                   },
                                 ),
@@ -2771,10 +2670,10 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                               Expanded(
                                 flex: 3,
                                 child: DropdownButtonFormField<String>(
-                                  value: _attSubj,
+                                  value: allowedSubjs.contains(_attSubj) ? _attSubj : null,
                                   isExpanded: true,
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMain),
-                                  decoration: const InputDecoration(labelText: '3. Permitted Subject (المقرر)'),
+                                  decoration: const InputDecoration(labelText: 'Course'),
                                   items: allowedSubjs
                                       .map((String s) => StringDropItem(value: s, child: Text(s, overflow: TextOverflow.ellipsis)))
                                       .toList(),
@@ -3489,10 +3388,12 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
   // SUBPAGE 3: DOCTOR COURSEWORK GRADES, SHEETS & APPEALS PORTAL
   // ==========================================================================
   Widget _buildDoctorGradesSubpage() {
+    _normalizeDoctorTrackSelections();
+    final List<String> allowedUnis = _allowedUniversitiesForDoctor();
+    final List<String> allowedProgs = _allowedProgramsForDoctor(_grdUni);
     final List<String> allowedSubjs = _allowedSubjectsFor(_grdUni, _grdProg);
-    if (!allowedSubjs.contains(_grdSubj)) _grdSubj = allowedSubjs.first;
-    final String tk = resolveTrackKey(_grdUni, _grdProg);
-    final bool isCourseOpen = _isCourseVisible(tk, _grdSubj);
+    final String tk = (_grdUni.isNotEmpty && _grdProg.isNotEmpty) ? resolveTrackKey(_grdUni, _grdProg) : '';
+    final bool isCourseOpen = tk.isNotEmpty && _grdSubj.isNotEmpty ? _isCourseVisible(tk, _grdSubj) : true;
 
     return RefreshIndicator(
       color: AppColors.emeraldDark,
@@ -3540,32 +3441,41 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                             children: <Widget>[
                               Expanded(
                                 child: DropdownButtonFormField<String>(
-                                  value: _grdUni,
+                                  value: allowedUnis.contains(_grdUni) ? _grdUni : null,
                                   isExpanded: true,
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMain),
-                                  decoration: const InputDecoration(labelText: '1. University (الجامعة)'),
-                                  items: const <StringDropItem>[
-                                    StringDropItem(value: 'Beni-Suef University', child: Text('BSU (الحكومية)')),
-                                    StringDropItem(value: 'Beni-Suef National University', child: Text('BSNU (الأهلية)')),
-                                  ],
+                                  decoration: const InputDecoration(labelText: 'University'),
+                                  items: allowedUnis
+                                      .map((String u) => StringDropItem(
+                                            value: u,
+                                            child: Text(u.contains('National') ? 'BSNU (الأهلية)' : 'BSU (الحكومية)'),
+                                          ))
+                                      .toList(),
                                   onChanged: (String? v) {
-                                    if (v != null) setState(() => _grdUni = v);
+                                    if (v == null) return;
+                                    setState(() {
+                                      _grdUni = v;
+                                      _normalizeDoctorTrackSelections();
+                                    });
                                   },
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: DropdownButtonFormField<String>(
-                                  value: _grdProg,
+                                  value: allowedProgs.contains(_grdProg) ? _grdProg : null,
                                   isExpanded: true,
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMain),
-                                  decoration: const InputDecoration(labelText: '2. Program (البرنامج)'),
-                                  items: const <StringDropItem>[
-                                    StringDropItem(value: 'Clinical', child: Text('PharmD Clinical')),
-                                    StringDropItem(value: 'General', child: Text('PharmD General')),
-                                  ],
+                                  decoration: const InputDecoration(labelText: 'Program'),
+                                  items: allowedProgs
+                                      .map((String p) => StringDropItem(value: p, child: Text('PharmD $p')))
+                                      .toList(),
                                   onChanged: (String? v) {
-                                    if (v != null) setState(() => _grdProg = v);
+                                    if (v == null) return;
+                                    setState(() {
+                                      _grdProg = v;
+                                      _normalizeDoctorTrackSelections();
+                                    });
                                   },
                                 ),
                               ),
@@ -3576,10 +3486,10 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
                             children: <Widget>[
                               Expanded(
                                 child: DropdownButtonFormField<String>(
-                                  value: _grdSubj,
+                                  value: allowedSubjs.contains(_grdSubj) ? _grdSubj : null,
                                   isExpanded: true,
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMain),
-                                  decoration: const InputDecoration(labelText: '3. Permitted Course (المقرر)'),
+                                  decoration: const InputDecoration(labelText: 'Course'),
                                   items: allowedSubjs
                                       .map((String s) => StringDropItem(value: s, child: Text(s, overflow: TextOverflow.ellipsis)))
                                       .toList(),
@@ -4081,12 +3991,7 @@ class _DoctorAdminWorkspaceState extends State<DoctorAdminWorkspace>
               ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, color: Color(0xFFCBD5E1)),
-          ),
+
         ],
       ),
     );
@@ -4407,7 +4312,14 @@ class _SuperAdminWorkspaceState extends State<SuperAdminWorkspace>
     }
     for (final String p in perms) {
       if (p.contains('__')) {
-        cPerms.add(p);
+        final List<String> parts = p.split('__');
+        if (parts.length == 2) {
+          final JsonMap? item = findSubjectByNameOrKey(parts[1]);
+          final String canonKey = item != null ? item['key'].toString() : parts[1];
+          cPerms.add('${parts[0]}__$canonKey');
+        } else {
+          cPerms.add(p);
+        }
       } else if (p.startsWith('ACT_')) {
         aPerms.add(p);
       }
@@ -4763,12 +4675,7 @@ class _SuperAdminWorkspaceState extends State<SuperAdminWorkspace>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 3),
-                  const Text(
-                    'التحكم المركزي في حسابات الدكاترة وترقية السوبر أدمن ومصفوفة الـ 36 مقرر • تعديل التواريخ • أرشفة الشيتات الـ 8 • Audit Log',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 9.5, color: Color(0xFFCBD5E1)),
-                  ),
+
                 ],
               ),
             ),
@@ -4908,12 +4815,7 @@ class _SuperAdminWorkspaceState extends State<SuperAdminWorkspace>
                   'Super Admin Control',
                   style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w900, color: AppColors.textMain),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'دخول الـ Super Admin للتحكم في مصفوفة المواد (36 مقرر)، ترقية الدكاترة إلى Super Admin، تعديل الغياب والتواريخ، الأرشفة، والـ Audit Log',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, height: 1.35),
-                ),
+
                 const SizedBox(height: 14),
                 TextField(
                   controller: _masterUserCtrl,
