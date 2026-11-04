@@ -233,9 +233,9 @@ class _YouTubeOriginalStyleIntroScreenState
                 final double badgeSheen =
                     _interval(0.18, 0.55, Curves.easeInOut);
                 final double lineDraw =
-                    _interval(0.24, 0.46, Curves.Cubic(0.22, 1.0, 0.36, 1.0));
+                    _interval(0.24, 0.46, const Cubic(0.22, 1.0, 0.36, 1.0));
                 final double barSplit =
-                    _interval(0.44, 0.72, Curves.Cubic(0.16, 1.0, 0.3, 1.0));
+                    _interval(0.44, 0.72, const Cubic(0.16, 1.0, 0.3, 1.0));
                 final double deptReveal =
                     _interval(0.60, 0.88, Curves.easeOutCubic);
 
