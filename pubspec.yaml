@@ -1,18 +1,16 @@
 name: micro_portal_app
-description: Department of Microbiology & Immunology - Faculty of Pharmacy, Beni-Suef University (BSU)
+description: Microbiology & Immunology Portal - Faculty of Pharmacy, Beni-Suef University
 publish_to: 'none'
-version: 3.0.0+3
+version: 2.0.0+2
 
 environment:
-  sdk: '>=3.4.0 <4.0.0'
+  sdk: '>=3.2.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.2.2
-  image_picker: ^1.1.2
-  url_launcher: ^6.3.0
-  shared_preferences: ^2.3.2
+  flutter_inappwebview: ^6.0.0
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:
