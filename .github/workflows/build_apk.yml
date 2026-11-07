@@ -1,4 +1,4 @@
-name: Build Micro Hub APK
+name: Build Micro Admin APK
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
       - name: Create Android Platform Shell (if missing)
         run: |
           if [ ! -d "android" ]; then
-            flutter create --org edu.bsu.pharmacy --project-name micro_hub .
+            flutter create --org edu.bsu.pharmacy.admin --project-name micro_admin .
           fi
 
       - name: Generate Transparent Logo & Square App Icon
@@ -44,7 +44,6 @@ jobs:
           resp = requests.get(url, timeout=20)
           raw_img = Image.open(io.BytesIO(resp.content)).convert("RGBA")
 
-          # 1. Strip any dark/black background for transparent in-app header & intro logo
           w, h = raw_img.size
           transparent_logo = raw_img.copy()
           px = transparent_logo.load()
@@ -54,17 +53,14 @@ jobs:
                   if r < 30 and g < 30 and b < 30:
                       px[x, y] = (0, 0, 0, 0)
 
-          # Crop to bounding box and center on a square transparent canvas
           bbox = transparent_logo.getbbox()
           if bbox:
               transparent_logo = transparent_logo.crop(bbox)
-          side = max(transparent_logo.size)
           sq_transparent = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
           scaled = transparent_logo.resize((460, 460), Image.Resampling.LANCZOS)
           sq_transparent.paste(scaled, ((512 - 460) // 2, (512 - 460) // 2), scaled)
           sq_transparent.save("assets/logo.png", "PNG")
 
-          # 2. Generate crisp Square Launcher Icon (ic_launcher.png & ic_launcher_round.png)
           def make_square_launcher(size):
               canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
               mask = Image.new("L", (size, size), 0)
@@ -95,7 +91,6 @@ jobs:
               icon.save(os.path.join(target_dir, "ic_launcher.png"), "PNG")
               icon.save(os.path.join(target_dir, "ic_launcher_round.png"), "PNG")
 
-          # Remove adaptive XML overrides so Android displays our exact square icon
           for anydpi in ["mipmap-anydpi-v26", "mipmap-anydpi"]:
               p = os.path.join(res_base, anydpi)
               if os.path.isdir(p):
@@ -117,7 +112,7 @@ jobs:
                   "<application",
                   '<uses-permission android:name="android.permission.INTERNET"/>\n    <application'
               )
-          m = re.sub(r'android:label="[^"]*"', 'android:label="Micro Hub"', m)
+          m = re.sub(r'android:label="[^"]*"', 'android:label="Micro Admin"', m)
           if 'android:usesCleartextTraffic="true"' not in m:
               m = m.replace("<application", '<application android:usesCleartextTraffic="true"')
 
@@ -146,5 +141,5 @@ jobs:
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: Micro-Hub-Release-APK
+          name: Micro-Admin-Release-APK
           path: build/app/outputs/flutter-apk/app-release.apk
