@@ -1,5 +1,5 @@
-name: micro_hub
-description: Department of Microbiology & Immunology Unified Portal (BSU & BSNU)
+name: micro_admin
+description: Department of Microbiology & Immunology — Staff & Super Admin Hub (BSU & BSNU)
 publish_to: 'none'
 version: 2.0.0+2
 
@@ -19,5 +19,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/logo.png
